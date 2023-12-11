@@ -29,6 +29,9 @@ class CSP:
             [0, 1],                # c4
         ]
 
+        def all_different(*args):
+            return len(args) == len(set(args))
+
         self.constraints = [
             # x4 + x8 = x13 + 10*c1
             (lambda x4, x8, x13, c1: x4 + x8 == x13 + 10*c1, (data[3], data[7], data[12], 'c1')),
@@ -42,6 +45,8 @@ class CSP:
             (lambda c4, x9: c4 == x9, ('c4', data[8])),
             # x9 == 1 and x1, x5 != 0
             (lambda x9, x1, x5: x9 == 1 and x1 != 0 and x5 != 0, (data[8], data[0], data[4])),
+            # all letters are distinct digits
+            (lambda x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12: all_different(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12), (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11])),
         ]
         
             
@@ -54,10 +59,6 @@ class BacktrackingSearch:
     @staticmethod
     def backtrack(csp, assignment):
         pass
-
-    @staticmethod
-    def all_different(*args):
-        return len(args) == len(set(args))
 
 class IO:
     @staticmethod
