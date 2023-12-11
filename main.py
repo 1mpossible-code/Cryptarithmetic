@@ -15,6 +15,7 @@ class CSP:
         self.variables.add('c1')
         self.variables.add('c2')
         self.variables.add('c3')
+        print(self.variables)
 
         self.domains = { 
             data[1]: [0,1,2,3,4,5,6,7,8,9], # x2
@@ -36,16 +37,16 @@ class CSP:
          }
 
         self.constraints = [
+            # all letters are distinct digits
+            (CSP.all_different, tuple(set(data))),
             # x4 + x8 = x13 + 10*c1
             (lambda x4, x8, x13, c1: x4 + x8 == x13 + 10*c1, (data[3], data[7], data[12], 'c1')),
             # x3 + x7 = x12 + 10*c2
-            (lambda x3, x7, x12, c2: x3 + x7 == x12 + 10*c2, (data[2], data[6], data[11], 'c2')),
+            (lambda x3, x7, x12, c2, c1: x3 + x7 + c1 == x12 + 10*c2, (data[2], data[6], data[11], 'c2', 'c1')),
             # x2 + x6 = x11 + 10*c3
-            (lambda x2, x6, x11, c3: x2 + x6 == x11 + 10*c3, (data[1], data[5], data[10], 'c3')),
-            # x1 + x5 = x10 + 10*c4
-            (lambda x1, x5, x10, x9: x1 + x5 == x10 + 10*x9, (data[0], data[4], data[9], data[8])),
-            # all letters are distinct digits
-            (lambda x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12: CSP.all_different(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12), (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11])),
+            (lambda x2, x6, x11, c3, c2: x2 + x6 + c2 == x11 + 10*c3, (data[1], data[5], data[10], 'c3', 'c2')),
+            # x1 + x5 = x10 + 10*x9
+            (lambda x1, x5, x10, x9, c3: x1 + x5 + c3 == x10 + 10*x9, (data[0], data[4], data[9], data[8], 'c3')),
         ]
     
     def get_constraints(self, var: chr):
@@ -88,14 +89,18 @@ class BacktrackingSearch:
     
     @staticmethod
     def is_consistent(csp: 'CSP', var, value, assignment):
-        constraints = csp.get_constraints(var)
-        for constraint, variables in constraints:
-            constraint_args = [assignment[variable] for variable in variables]
+        temp_assignment = assignment.copy()
+        temp_assignment[var] = value
+        for constraint, variables in csp.get_constraints(var):
+            print()
+            print(assignment)
+            print(variables)
+            print()
+            values = [temp_assignment.get(variable, None) for variable in variables]
 
-            constraint_args[variables.index(var)] = value
-            
-            if not constraint(*constraint_args):
-                return False
+            if all(value is not None for value in values):
+                if not constraint(*values):
+                    return False
             
         return True
 
@@ -104,11 +109,25 @@ class IO:
     def read(filename: str) -> Tuple[chr]:
         with open(filename, 'r') as f:
             return tuple(''.join([l.strip() for l in f.readlines()]))
+    
+    def write(data, assigment: dict, filename: str):
+        with open(filename, 'w') as f:
+            res = ''
+            for i in range(4):
+                res += str(assigment[data[i]])
+            res += '\n'
+            for i in range(4,8):
+                res += str(assigment[data[i]])
+            res += '\n'
+            for i in range(8,13):
+                res += str(assigment[data[i]])
+        print(res)
         
     
 
 if __name__ == '__main__':
-    data = IO.read('Input1.txt')
-    data = CSP(data)
-    assingment = BacktrackingSearch.search(data)
+    data = IO.read('Input2.txt')
+    csp = CSP(data)
+    assingment = BacktrackingSearch.search(csp)
     print(assingment)
+    IO.write(data, assingment, 'Output2.txt') 
