@@ -15,7 +15,6 @@ class CSP:
         self.variables.add('c1')
         self.variables.add('c2')
         self.variables.add('c3')
-        self.variables.add('c4')
 
         self.domains = { 
             data[1]: [0,1,2,3,4,5,6,7,8,9], # x2
@@ -51,32 +50,11 @@ class CSP:
     
     def get_constraints(self, var: chr):
         res = []
-        for constraint, variables in range(len(self.constraints)):
+        for constraint, variables in self.constraints:
             if var in variables:
                 res.append((constraint, variables))
         return tuple(res)
 
-    @staticmethod
-    def is_consistent(csp: 'CSP', var, value, assignment):
-        constraints = csp.get_constraints(var)
-        for constraint, variables in constraints:
-            skip = False
-
-            for variable in variables:
-                if variable not in assignment:
-                    skip = True
-                    break
-
-            if skip: continue
-            
-            constraint_args = [assignment[variable] for variable in variables]
-
-            constraint_args[variables.index(var)] = value
-            
-            if not constraint(*constraint_args):
-                return False
-            
-        return True
         
         
 class BacktrackingSearch:
@@ -87,6 +65,39 @@ class BacktrackingSearch:
     @staticmethod
     def backtrack(csp, assignment):
         if len(assignment) == len(csp.variables): return assignment
+        var = BacktrackingSearch.select_unassigned_variable(csp, assignment)
+        for value in BacktrackingSearch.order_domain_values(csp, var, assignment):
+            if BacktrackingSearch.is_consistent(csp, var, value, assignment):
+                assignment[var] = value
+                result = BacktrackingSearch.backtrack(csp, assignment)
+                if result: return result
+                del assignment[var]
+        return None
+            
+    
+    @staticmethod
+    def select_unassigned_variable(csp: CSP, assignment):
+        # TODO: heuristics
+        for variable in csp.variables:
+            if variable not in assignment: 
+                return variable
+    
+    @staticmethod
+    def order_domain_values(csp: CSP, var, assignment):
+        return csp.domains[var]
+    
+    @staticmethod
+    def is_consistent(csp: 'CSP', var, value, assignment):
+        constraints = csp.get_constraints(var)
+        for constraint, variables in constraints:
+            constraint_args = [assignment[variable] for variable in variables]
+
+            constraint_args[variables.index(var)] = value
+            
+            if not constraint(*constraint_args):
+                return False
+            
+        return True
 
 class IO:
     @staticmethod
