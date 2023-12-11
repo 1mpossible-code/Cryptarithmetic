@@ -3,7 +3,7 @@
 # x3,x4,x6,x7,x8,x10,x11,x12,x13 - {0,1,2,3,4,5,6,7,8,9}
 # all letters are distinct digits
 from typing import Tuple
-
+import time
 
 class CSP:
     @staticmethod
@@ -15,7 +15,6 @@ class CSP:
         self.variables.add('c1')
         self.variables.add('c2')
         self.variables.add('c3')
-        print(self.variables)
 
         self.domains = { 
             data[1]: [0,1,2,3,4,5,6,7,8,9], # x2
@@ -78,13 +77,31 @@ class BacktrackingSearch:
     
     @staticmethod
     def select_unassigned_variable(csp: CSP, assignment):
-        # TODO: heuristics
+        mini = [[], float("inf")]
         for variable in csp.variables:
             if variable not in assignment: 
-                return variable
+                domain_length = len(csp.domains[variable])
+                if domain_length < mini[1]:
+                    mini[0], mini[1] = [variable], domain_length
+                elif domain_length == mini[1]:
+                    mini[0].append(variable)
+        if len(mini[0]) == 1: return mini[0][0]
+
+        # Degree Heuristics
+        vars = mini[0]
+        maxi = [[], float("-inf")]
+        for i in range(len(vars)):
+            var = vars[i]
+            l = len(csp.get_constraints(var))
+            if l > maxi[1]:
+                maxi[0], maxi[1] = var, l
+        
+        return maxi[0]
+
     
     @staticmethod
     def order_domain_values(csp: CSP, var, assignment):
+        # Here the domains are sorted from lowest to highest, so we need just return the original domain instead of sorting it
         return csp.domains[var]
     
     @staticmethod
@@ -92,10 +109,6 @@ class BacktrackingSearch:
         temp_assignment = assignment.copy()
         temp_assignment[var] = value
         for constraint, variables in csp.get_constraints(var):
-            print()
-            print(assignment)
-            print(variables)
-            print()
             values = [temp_assignment.get(variable, None) for variable in variables]
 
             if all(value is not None for value in values):
@@ -129,5 +142,4 @@ if __name__ == '__main__':
     data = IO.read('Input2.txt')
     csp = CSP(data)
     assingment = BacktrackingSearch.search(csp)
-    print(assingment)
     IO.write(data, assingment, 'Output2.txt') 
