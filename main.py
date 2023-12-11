@@ -48,10 +48,36 @@ class CSP:
             # all letters are distinct digits
             (lambda x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12: CSP.all_different(x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12), (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11])),
         ]
+    
+    def get_constraints(self, var: chr):
+        res = []
+        for constraint, variables in range(len(self.constraints)):
+            if var in variables:
+                res.append((constraint, variables))
+        return tuple(res)
 
     @staticmethod
-    def is_consistent(csp, var, value, assignment):
-        pass
+    def is_consistent(csp: 'CSP', var, value, assignment):
+        constraints = csp.get_constraints(var)
+        for constraint, variables in constraints:
+            skip = False
+
+            for variable in variables:
+                if variable not in assignment:
+                    skip = True
+                    break
+
+            if skip: continue
+            
+            constraint_args = [assignment[variable] for variable in variables]
+
+            constraint_args[variables.index(var)] = value
+            
+            if not constraint(*constraint_args):
+                return False
+            
+        return True
+        
         
 class BacktrackingSearch:
     @staticmethod
@@ -60,8 +86,7 @@ class BacktrackingSearch:
 
     @staticmethod
     def backtrack(csp, assignment):
-        if len(assignment) == len(csp.variables):
-            return assignment
+        if len(assignment) == len(csp.variables): return assignment
 
 class IO:
     @staticmethod
