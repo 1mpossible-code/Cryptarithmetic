@@ -7,17 +7,8 @@ from typing import Tuple
 
 class CSP:
     def __init__(self, data: Tuple[chr]) -> None:
-        self.original = data
+        self.variables = data
 
-
-        self.variables = {}
-        for i in range(len(data)):
-            var = data[i]
-            if var in self.variables:
-                self.variables[var].append(i)
-            else:
-                self.variables[var] = [i]
-            
         self.domains = [
             [1,2,3,4,5,6,7,8,9],   # x1
             [0,1,2,3,4,5,6,7,8,9], # x2
@@ -37,7 +28,21 @@ class CSP:
             [0, 1],                # c3
             [0, 1],                # c4
         ]
-        
+
+        self.constraints = [
+            # x4 + x8 = x13 + 10*c1
+            (lambda x4, x8, x13, c1: x4 + x8 == x13 + 10*c1, (data[3], data[7], data[12], 'c1')),
+            # x3 + x7 = x12 + 10*c2
+            (lambda x3, x7, x12, c2: x3 + x7 == x12 + 10*c2, (data[2], data[6], data[11], 'c2')),
+            # x2 + x6 = x11 + 10*c3
+            (lambda x2, x6, x11, c3: x2 + x6 == x11 + 10*c3, (data[1], data[5], data[10], 'c3')),
+            # x1 + x5 = x10 + 10*c4
+            (lambda x1, x5, x10, c4: x1 + x5 == x10 + 10*c4, (data[0], data[4], data[9], 'c4')),
+            # c4 = x9
+            (lambda c4, x9: c4 == x9, ('c4', data[8])),
+            # x9 == 1 and x1, x5 != 0
+            (lambda x9, x1, x5: x9 == 1 and x1 != 0 and x5 != 0, (data[8], data[0], data[4])),
+        ]
         
             
 
